@@ -12,7 +12,11 @@ if (!window.MediaRecorder) {
   console.log('MediaRecorder polyfill applied');
 }
 
-export function RecordButton() {
+interface RecordButtonProps {
+  room?: string;
+}
+
+export function RecordButton({ room }: RecordButtonProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -111,20 +115,28 @@ export function RecordButton() {
             const tags = await uploadFile(audioFile);
             const audioUrl = tags[0][1]; // First tag contains the URL
 
+            // Build tags for the event
+            const eventTags = [
+              ['url', audioUrl],
+              ...tags // Include all file metadata tags
+            ];
+            
+            // Add room hashtag if in a room
+            if (room) {
+              eventTags.push(['t', room]);
+            }
+            
             // Publish voice note event
             await publishEvent({
               kind: 1069,
               content: '',
-              tags: [
-                ['url', audioUrl],
-                ...tags // Include all file metadata tags
-              ]
+              tags: eventTags
             });
 
             // Small delay to allow relay propagation
             setTimeout(async () => {
               // Immediately refresh voice notes
-              await queryClient.invalidateQueries({ queryKey: ['voice-notes'] });
+              await queryClient.invalidateQueries({ queryKey: ['voice-notes', room] });
             }, 500);
 
             setIsUploading(false);

@@ -1,3 +1,4 @@
+import { useParams } from 'react-router-dom';
 import { useEffect, useMemo } from 'react';
 import { useVoiceNotes } from '@/hooks/useVoiceNotes';
 import { useAutoAccount } from '@/hooks/useAutoAccount';
@@ -7,9 +8,10 @@ import { MatrixVoiceBar } from '@/components/MatrixVoiceBar';
 import { RecordButton } from '@/components/RecordButton';
 import { useViewMode } from '@/contexts/ViewModeContext';
 
-export function HomePage() {
+export function RoomPage() {
+  const { room } = useParams<{ room: string }>();
   const { user, isReady } = useAutoAccount();
-  const { data: voiceNotes, isLoading } = useVoiceNotes();
+  const { data: voiceNotes, isLoading } = useVoiceNotes(room);
   const { viewMode, setViewMode } = useViewMode();
   
   // Publish profile metadata
@@ -127,6 +129,12 @@ export function HomePage() {
           </button>
         </div>
       </div>
+
+      {/* Room indicator */}
+      <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-50">
+        <div className={`text-xs ${viewMode === 'matrix' ? 'text-green-600' : 'text-gray-600'}`}>room</div>
+        <div className={`text-sm ${viewMode === 'matrix' ? 'text-green-400 font-mono' : 'text-gray-400'}`}>#{room}</div>
+      </div>
       
       {/* User info */}
       <div className="absolute top-8 right-8 text-right z-50">
@@ -184,12 +192,11 @@ export function HomePage() {
       </div>
 
       {/* Record button */}
-      <RecordButton />
+      <RecordButton room={room} />
       
       {/* Instructions */}
       <div className={`absolute bottom-8 left-8 text-xs ${viewMode === 'matrix' ? 'text-green-700 font-mono' : 'text-gray-700'}`}>
-        <div>{viewMode === 'matrix' ? 'hover bars to decode • click + to transmit' : 'click to listen • click + to speak'}</div>
-        <div className="mt-1 opacity-60">visit /roomname to join a room</div>
+        {viewMode === 'matrix' ? 'hover bars to decode • click + to transmit' : 'click to listen • click + to speak'}
       </div>
     </div>
   );

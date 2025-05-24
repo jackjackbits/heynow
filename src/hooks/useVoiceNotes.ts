@@ -15,11 +15,11 @@ export interface VoiceNote {
 // Store positions in memory to prevent jumping
 const positionCache = new Map<string, { x: number; y: number }>();
 
-export function useVoiceNotes() {
+export function useVoiceNotes(room?: string) {
   const { nostr } = useNostr();
 
   return useQuery({
-    queryKey: ['voice-notes'],
+    queryKey: ['voice-notes', room],
     queryFn: async (c) => {
       try {
         // Create abort signal - use fallback for Safari compatibility
@@ -40,7 +40,13 @@ export function useVoiceNotes() {
           }
         }
         
-        const events = await nostr.query([{ kinds: [1069], limit: 100 }], { signal });
+        // Build filter with optional room hashtag
+        const filter: any = { kinds: [1069], limit: 100 };
+        if (room) {
+          filter['#t'] = [room];
+        }
+        
+        const events = await nostr.query([filter], { signal });
         
         // Get current timestamp and 10 minutes ago
         const now = Math.floor(Date.now() / 1000);
