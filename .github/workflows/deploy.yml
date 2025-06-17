@@ -34,12 +34,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "20"
           cache: npm
 
-      - name: Install dependencies and build
+      - name: Clean install dependencies and build
         run: |
-          npm install
+          npm ci
           npm run build
           cp dist/index.html dist/404.html
 
